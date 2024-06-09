@@ -30,10 +30,8 @@ from flask_login import (
 )
 
 from app import create_app,db,login_manager,bcrypt
-from models import User
-from forms import login_form,register_form
-
-from models import Image
+from models import User, Project, Image
+from forms import login_form,register_form, create_project_form
 
 from flask import Flask, json, request, jsonify
 import os
@@ -60,31 +58,41 @@ def index():
 @app.route("/login/", methods=("GET", "POST"))
 def login():
     form = login_form()
+    print(form.email.data, form.pwd.data, form.username.data)
 
-    email = form.email.data
-    pwd = form.pwd.data
-    username = form.username.data
-    print(email, pwd, username)
     try:
         user = User.query.filter_by(email=form.email.data).first()
+        if user == None:
+            print("None")
+        else:
+            print(user.pwd)
+            print(form.pwd.data)
+            print("Генерация")
+
         if check_password_hash(user.pwd, form.pwd.data):
             login_user(user)
             
             resp = jsonify({
-                "username": current_user.username,
-                "email": current_user.email,
+                # "username": current_user.username,
+                # "email": current_user.email,
+                "response_code": 0,
+                "errcode": 0,
                 "message": 'Login success',
                 "status": 'success'
             })
             return resp
         else:
             resp = jsonify({
+                "response_code": 1,
+                "errcode": -1,
                 "message": 'Invalid Username or password!"',
                 "status": 'danger'
             })
             return resp
     except Exception as e:
         resp = jsonify({
+            "response_code": 2,
+            "errcode": -1,
             "message": 'Invalid Username or password!"',
             "status": 'danger'
         })
@@ -96,16 +104,11 @@ def login():
 def registration():
     form = register_form()
     try:
-        email = form.email.data
-        pwd = form.pwd.data
-        username = form.username.data
-        
         newuser = User(
-            username=username,
-            email=email,
-            pwd=bcrypt.generate_password_hash(pwd),
+            name=form.username.data,
+            email=form.email.data,
+            pwd=bcrypt.generate_password_hash(form.pwd.data),
         )
-
         db.session.add(newuser)
         db.session.commit()
         
@@ -173,9 +176,15 @@ def registration():
         return resp
 
 
-@app.route("/logout")
+@app.route("/projects/")
+def get_project():
+    print("/projects/")
+
+
+@app.route("/logout/")
 @login_required
 def logout():
+    print("/logout")
     logout_user()
     resp = jsonify({
             "response_code": 0,
@@ -253,12 +262,93 @@ def upload_file():
         resp.status_code = 500
         return resp
      
-@app.route('/images',methods =['GET'])
+@app.route('/images', methods = ['GET'])
 def images():
     all_images = Image.query.all()
     results = image_schema.dump(all_images)
     return jsonify(results)
 
+@app.route('/project/<project_id>/main_image/', methods = ['GET'])
+def main_image(project_id: int):
+    image = Image.query.where(Image.id == project_id)
+    result = image_schema.dump(image)
+    return jsonify(result)
+
+@app.route('/create_project/', methods = ['POST'])
+def create_project():
+    form = create_project_form()
+    try:
+        newproject = Project(
+            user_id = current_user.id,
+            name = form.name,
+            description = form.description,
+        )
+
+        db.session.add(newproject)
+        db.session.commit()
+        
+        resp = jsonify({
+                "response_code": 0,
+                "errcode": 0,
+                "message": 'Project Succesfully created',
+                "status": 'success'
+            })
+        return resp
+
+    except InvalidRequestError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 1,
+            "errcode": -1,
+            "message": 'Something went wrong!',
+            "status": 'danger'
+        })
+        return resp
+    except IntegrityError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 2,
+            "errcode": 1,
+            "message": 'Project already exists!',
+            "status": 'warning'
+        })
+        return resp
+    except DataError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 3,
+            "errcode": 1,
+            "message": 'Invalid Entry',
+            "status": 'warning'
+        })
+        return resp
+    except InterfaceError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 4,
+            "errcode": -1,
+            "message": 'Error connecting to the database',
+            "status": 'danger'
+        })
+        return resp
+    except DatabaseError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 5,
+            "errcode": -1,
+            "message": 'Error connecting to the database',
+            "status": 'danger'
+        })
+        return resp
+    except BuildError:
+        db.session.rollback()
+        resp = jsonify({
+            "response_code": 6,
+            "errcode": -1,
+            "message": 'An error occured!',
+            "status": 'danger'
+        })
+        return resp
 
 
 if __name__ == "__main__":

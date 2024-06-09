@@ -15,6 +15,10 @@ from wtforms import ValidationError,validators
 from models import User
 
 
+class projects_form(FlaskForm):
+    number_of_project = IntegerField(validators=[InputRequired()])
+    
+
 class login_form(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(1, 64)])
     pwd = PasswordField(validators=[InputRequired(), Length(min=8, max=72)])
@@ -23,6 +27,28 @@ class login_form(FlaskForm):
         validators=[Optional()]
     )
 
+class create_project_form(FlaskForm):
+    name = StringField(
+        validators=[
+            InputRequired(),
+            Length(3, 30, message="Please provide a valid name"),
+            Regexp(
+                "^[A-Za-z][A-Za-z0-9_.]*$",
+                0,
+                "Project names must have only letters, " "numbers, dots or underscores",
+            ),
+        ]
+    )
+    description = StringField(
+        validators=[
+            Length(0, 1200, message="Please provide a valid description"),
+            Regexp(
+                "^[A-Za-z][A-Za-z0-9_.]*$",
+                0,
+                "Project description must have only letters, " "numbers, dots or underscores",
+            ),
+        ]
+    )
 
 class register_form(FlaskForm):
     username = StringField(
