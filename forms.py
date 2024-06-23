@@ -12,43 +12,23 @@ from wtforms.validators import InputRequired, Length, EqualTo, Email, Regexp ,Op
 import email_validator
 from flask_login import current_user
 from wtforms import ValidationError,validators
-from models import User
+from models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage, PhotosFromTheFeed, PhotoMask 
 
 
-class projects_form(FlaskForm):
-    number_of_project = IntegerField(validators=[InputRequired()])
-    
+
+class create_project_form(FlaskForm):
+    user_id = IntegerField()
+    project_name = StringField(validators=[InputRequired(), Length(1, 50)])
+
+
+class add_preview_image_form(FlaskForm):
+    preview_image_name = StringField(validators=[InputRequired(), Length(1, 50)])
+
 
 class login_form(FlaskForm):
     email = StringField(validators=[InputRequired(), Email(), Length(1, 64)])
     pwd = PasswordField(validators=[InputRequired(), Length(min=8, max=72)])
-    # Placeholder labels to enable form rendering
-    username = StringField(
-        validators=[Optional()]
-    )
 
-class create_project_form(FlaskForm):
-    name = StringField(
-        validators=[
-            InputRequired(),
-            Length(3, 30, message="Please provide a valid name"),
-            Regexp(
-                "^[A-Za-z][A-Za-z0-9_.]*$",
-                0,
-                "Project names must have only letters, " "numbers, dots or underscores",
-            ),
-        ]
-    )
-    description = StringField(
-        validators=[
-            Length(0, 1200, message="Please provide a valid description"),
-            Regexp(
-                "^[A-Za-z][A-Za-z0-9_.]*$",
-                0,
-                "Project description must have only letters, " "numbers, dots or underscores",
-            ),
-        ]
-    )
 
 class register_form(FlaskForm):
     username = StringField(

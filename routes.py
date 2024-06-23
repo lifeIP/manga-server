@@ -30,7 +30,7 @@ from flask_login import (
 )
 
 from app import create_app,db,login_manager,bcrypt
-from models import User, Project, Image
+from models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage, PhotosFromTheFeed, PhotoMask 
 from forms import login_form,register_form, create_project_form
 
 from flask import Flask, json, request, jsonify
@@ -52,29 +52,24 @@ def session_handler():
 
 @app.route("/1", methods=("GET", "POST"), strict_slashes=False)
 def index():
-    return render_template("index.html",title="Home")
+    return render_template("index.html", title="Home")
 
 
 @app.route("/login/", methods=("GET", "POST"))
 def login():
     form = login_form()
-    print(form.email.data, form.pwd.data, form.username.data)
-
+    print(form.data)
     try:
-        user = User.query.filter_by(email=form.email.data).first()
-        if user == None:
-            print("None")
-        else:
-            print(user.pwd)
-            print(form.pwd.data)
-            print("Генерация")
-
+        print("user")
+        user = UserSettings.query.filter_by(email=form.email.data).first()
+        print("user")
         if check_password_hash(user.pwd, form.pwd.data):
-            login_user(user)
-            
+
+            print("check_password_hash")
+            login_user(User.query.get(int(user.user_id)))
+            print("login_user")
+
             resp = jsonify({
-                # "username": current_user.username,
-                # "email": current_user.email,
                 "response_code": 0,
                 "errcode": 0,
                 "message": 'Login success',
@@ -103,12 +98,21 @@ def login():
 @app.route("/registration/", methods=("GET", "POST"))
 def registration():
     form = register_form()
+    print(form.data)
     try:
         newuser = User(
-            name=form.username.data,
-            email=form.email.data,
-            pwd=bcrypt.generate_password_hash(form.pwd.data),
         )
+        
+        newuser_settings = UserSettings(
+            user_name=form.username.data,
+            email=form.email.data,
+            pwd=bcrypt.generate_password_hash(form.pwd.data)
+        )
+        
+        site_settings = SiteSettings()
+
+        newuser.user_settings.append(newuser_settings)
+        newuser.site_settings.append(site_settings)
         db.session.add(newuser)
         db.session.commit()
         
@@ -211,68 +215,68 @@ image_schema = ImageSchema(many=True)
 def hello_world():
     return "<h1>Hello, World!</h1>"
 
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    # check if the post request has the file part
-    if 'files[]' not in request.files:
-        resp = jsonify({
-            "message": 'No file part in the request',
-            "status": 'failed'
-        })
-        resp.status_code = 400
-        return resp
+# @app.route('/upload', methods=['POST'])
+# def upload_file():
+#     # check if the post request has the file part
+#     if 'files[]' not in request.files:
+#         resp = jsonify({
+#             "message": 'No file part in the request',
+#             "status": 'failed'
+#         })
+#         resp.status_code = 400
+#         return resp
   
-    files = request.files.getlist('files[]')
+#     files = request.files.getlist('files[]')
       
-    errors = {}
-    success = False
+#     errors = {}
+#     success = False
       
-    for file in files:      
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#     for file in files:      
+#         if file and allowed_file(file.filename):
+#             filename = secure_filename(file.filename)
+#             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
  
-            newFile = Image(title=filename)
-            db.session.add(newFile)
-            db.session.commit()
+#             newFile = Image(title=filename)
+#             db.session.add(newFile)
+#             db.session.commit()
  
-            success = True
-        else:
-            resp = jsonify({
-                "message": 'File type is not allowed',
-                "status": 'failed'
-            })
-            return resp
+#             success = True
+#         else:
+#             resp = jsonify({
+#                 "message": 'File type is not allowed',
+#                 "status": 'failed'
+#             })
+#             return resp
          
-    if success and errors:
-        errors['message'] = 'File(s) successfully uploaded'
-        errors['status'] = 'failed'
-        resp = jsonify(errors)
-        resp.status_code = 500
-        return resp
-    if success:
-        resp = jsonify({
-            "message": 'Files successfully uploaded',
-            "status": 'successs'
-        })
-        resp.status_code = 201
-        return resp
-    else:
-        resp = jsonify(errors)
-        resp.status_code = 500
-        return resp
+#     if success and errors:
+#         errors['message'] = 'File(s) successfully uploaded'
+#         errors['status'] = 'failed'
+#         resp = jsonify(errors)
+#         resp.status_code = 500
+#         return resp
+#     if success:
+#         resp = jsonify({
+#             "message": 'Files successfully uploaded',
+#             "status": 'successs'
+#         })
+#         resp.status_code = 201
+#         return resp
+#     else:
+#         resp = jsonify(errors)
+#         resp.status_code = 500
+#         return resp
      
-@app.route('/images', methods = ['GET'])
-def images():
-    all_images = Image.query.all()
-    results = image_schema.dump(all_images)
-    return jsonify(results)
+# @app.route('/images', methods = ['GET'])
+# def images():
+#     all_images = Image.query.all()
+#     results = image_schema.dump(all_images)
+#     return jsonify(results)
 
-@app.route('/project/<project_id>/main_image/', methods = ['GET'])
-def main_image(project_id: int):
-    image = Image.query.where(Image.id == project_id)
-    result = image_schema.dump(image)
-    return jsonify(result)
+# @app.route('/project/<project_id>/main_image/', methods = ['GET'])
+# def main_image(project_id: int):
+#     image = Image.query.where(Image.id == project_id)
+#     result = image_schema.dump(image)
+#     return jsonify(result)
 
 @app.route('/create_project/', methods = ['POST'])
 def create_project():
@@ -280,8 +284,7 @@ def create_project():
     try:
         newproject = Project(
             user_id = current_user.id,
-            name = form.name,
-            description = form.description,
+            project_name = form.project_name
         )
 
         db.session.add(newproject)

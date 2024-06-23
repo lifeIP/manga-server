@@ -5,28 +5,61 @@ from flask_login import UserMixin
 class User(UserMixin, db.Model):
     __tablename__ = "user"
     
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    
+
+    user_settings = db.relationship('UserSettings', backref='user')
+    site_settings = db.relationship('SiteSettings', backref='user')
+
+class UserSettings(db.Model):
+    __tablename__ = "user_settings"
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_name = db.Column(db.String(15), unique=False, nullable=False, default="No Name")
     email = db.Column(db.String(120), unique=True, nullable=False)
     pwd = db.Column(db.String(300), unique=True, nullable=False)
 
-    def __repr__(self):
-        return '<User %r>' % self.user_pwd
-    
+class SiteSettings(db.Model):
+    __tablename__ = "site_settings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    theme = db.Column(db.Boolean, default=1)
 
 class Project(db.Model):
     __tablename__ = "project"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    name = db.Column(db.String(30), unique=False, nullable=False)
-    description = db.Column(db.String(1200), unique=False, nullable=False)
 
+class ProjectSettings(db.Model):
+    __tablename__ = "project_settings"
 
-class Image(db.Model):
-    __tablename__ = "images"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project_name = db.Column(db.String(50), unique=False, nullable=False, default="Нет названия")
+    project_description = db.Column(db.Text(1200), unique=False, default="Нет описания")
+    project_status = db.Column(db.Integer, default=0)
+
+class PreviewImage(db.Model):
+    __tablename__ = "preview_image"
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    preview_image_name = db.Column(db.String(50), unique=False, nullable=False, default="0.png")
+    
+class PhotosFromTheFeed(db.Model):
+    __tablename__ = "photos_from_the_feed"
     
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    name = db.Column(db.String(120), unique=True, nullable=False)
     number_in_queue = db.Column(db.Integer, unique=False, nullable=False)
+    photo_name = db.Column(db.String(30), unique=True, nullable=False, default="0.png")
+
+class PhotoMask(db.Model):
+    __tablename__ = "photo_mask"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    photo_id = db.Column(db.Integer, db.ForeignKey('photos_from_the_feed.id'))
+    mask_name = db.Column(db.String(30), unique=True, nullable=False, default="0.png")
