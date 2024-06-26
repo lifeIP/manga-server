@@ -7,7 +7,6 @@ class User(UserMixin, db.Model):
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     
-
     user_settings = db.relationship('UserSettings', backref='user')
     site_settings = db.relationship('SiteSettings', backref='user')
 
@@ -33,6 +32,10 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
+    project_settings = db.relationship("ProjectSettings", backref="project")
+    preview_image = db.relationship("PreviewImage", backref="project")
+    photos_from_the_feed = db.relationship("PhotosFromTheFeed", backref="project")
+
 class ProjectSettings(db.Model):
     __tablename__ = "project_settings"
 
@@ -49,17 +52,25 @@ class PreviewImage(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     preview_image_name = db.Column(db.String(50), unique=False, nullable=False, default="0.png")
     
-class PhotosFromTheFeed(db.Model):
-    __tablename__ = "photos_from_the_feed"
+class UserPhoto(db.Model):
+    __tablename__ = "user_photo"
     
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     number_in_queue = db.Column(db.Integer, unique=False, nullable=False)
-    photo_name = db.Column(db.String(30), unique=True, nullable=False, default="0.png")
+    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+
+class ModifiedPhoto(db.Model):
+    __tablename__ = "modified_photo"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_photo_id = db.Column(db.Integer, db.ForeignKey('user_photo.id'))
+
 
 class PhotoMask(db.Model):
     __tablename__ = "photo_mask"
     
     id = db.Column(db.Integer, primary_key=True)
-    photo_id = db.Column(db.Integer, db.ForeignKey('photos_from_the_feed.id'))
-    mask_name = db.Column(db.String(30), unique=True, nullable=False, default="0.png")
+    user_photo_id = db.Column(db.Integer, db.ForeignKey('user_photo.id'))
+    mask_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+    status = db.Column(db.Integer, unique=False, nullable=False, default=0)

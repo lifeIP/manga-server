@@ -3,7 +3,7 @@ def deploy():
 	"""Run deployment tasks."""
 	from app import create_app,db
 	from flask_migrate import upgrade,migrate,init,stamp
-	from models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage, PhotosFromTheFeed, PhotoMask 
+	from src.database.models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage
 
 	app = create_app()
 	app.app_context().push()
@@ -14,6 +14,5 @@ def deploy():
 	stamp()
 	migrate()
 	upgrade()
-	
-deploy()
+
 	

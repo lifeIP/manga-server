@@ -30,7 +30,7 @@ from flask_login import (
 )
 
 from app import create_app,db,login_manager,bcrypt
-from models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage, PhotosFromTheFeed, PhotoMask 
+from src.database.models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage 
 from forms import login_form,register_form, create_project_form
 
 from flask import Flask, json, request, jsonify
@@ -38,39 +38,23 @@ import os
 import urllib.request
 from werkzeug.utils import secure_filename
 from flask_marshmallow import Marshmallow
-from authentication import my_auth
+
+from src.apis.authentication.authentication import my_auth
+from src.apis.project.project_management import my_projects
 
 app = create_app()
 app.register_blueprint(my_auth)
+app.register_blueprint(my_projects)
 
 @app.before_request
 def session_handler():
     session.permanent = True
     app.permanent_session_lifetime = timedelta(minutes=1)
 
-@app.route("/1", methods=("GET", "POST"), strict_slashes=False)
-def index():
-    return render_template("index.html", title="Home")
+# @app.route("/1", methods=("GET", "POST"), strict_slashes=False)
+# def index():
+#     return render_template("index.html", title="Home")
 
-
-
-@app.route("/projects/")
-def get_project():
-    print("/projects/")
-
-
-@app.route("/logout/")
-@login_required
-def logout():
-    print("/logout")
-    logout_user()
-    resp = jsonify({
-            "response_code": 0,
-            "errcode": 0,
-            "message": 'Logout success',
-            "status": 'success'
-        })
-    return resp
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
  
@@ -228,5 +212,5 @@ def create_project():
         return resp
 
 
-if __name__ == "__main__":
+def run_routes():
     app.run(debug=True)

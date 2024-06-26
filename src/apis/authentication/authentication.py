@@ -1,5 +1,5 @@
 from app import create_app,db,login_manager,bcrypt
-from models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage, PhotosFromTheFeed, PhotoMask
+from src.database.models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage
 from flask import Blueprint, Flask, json, request, jsonify
 from forms import login_form,register_form, create_project_form
 from flask_bcrypt import Bcrypt,generate_password_hash, check_password_hash
@@ -152,3 +152,15 @@ def registration():
         })
         return resp
 
+@my_auth.route("/logout/")
+@login_required
+def logout():
+    print("/logout")
+    logout_user()
+    resp = jsonify({
+            "response_code": 0,
+            "errcode": 0,
+            "message": 'Logout success',
+            "status": 'success'
+        })
+    return resp
