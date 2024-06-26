@@ -17,7 +17,6 @@ from src.database.models import User, UserSettings, SiteSettings, Project, Proje
 
 
 class create_project_form(FlaskForm):
-    user_id = IntegerField()
     project_name = StringField(validators=[InputRequired(), Length(1, 50)])
 
 

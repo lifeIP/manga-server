@@ -34,7 +34,7 @@ class Project(db.Model):
 
     project_settings = db.relationship("ProjectSettings", backref="project")
     preview_image = db.relationship("PreviewImage", backref="project")
-    photos_from_the_feed = db.relationship("PhotosFromTheFeed", backref="project")
+    user_photo = db.relationship("UserPhoto", backref="project")
 
 class ProjectSettings(db.Model):
     __tablename__ = "project_settings"
@@ -59,6 +59,10 @@ class UserPhoto(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     number_in_queue = db.Column(db.Integer, unique=False, nullable=False)
     photo_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+
+    modified_photo = db.relationship("ModifiedPhoto", backref="user_photo")
+    photo_mask = db.relationship("PhotoMask", backref="user_photo")
+
 
 class ModifiedPhoto(db.Model):
     __tablename__ = "modified_photo"

@@ -10,9 +10,9 @@ def deploy():
 	db.create_all()
 
 	# migrate database to latest revision
-	init()
-	stamp()
-	migrate()
-	upgrade()
+	init(directory="src/database/migration")
+	stamp(directory="src/database/migration")
+	migrate(directory="src/database/migration")
+	upgrade(directory="src/database/migration")
 
 	

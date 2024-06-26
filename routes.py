@@ -30,7 +30,7 @@ from flask_login import (
 )
 
 from app import create_app,db,login_manager,bcrypt
-from src.database.models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage 
+from src.database.models import User, UserSettings, SiteSettings, Project, ProjectSettings, PreviewImage
 from forms import login_form,register_form, create_project_form
 
 from flask import Flask, json, request, jsonify
@@ -136,81 +136,85 @@ def hello_world():
 #     result = image_schema.dump(image)
 #     return jsonify(result)
 
-@app.route('/create_project/', methods = ['POST'])
-def create_project():
-    form = create_project_form()
-    try:
-        newproject = Project(
-            user_id = current_user.id,
-            project_name = form.project_name
-        )
+# @app.route('/create_project/', methods = ['POST'])
+# def create_project():
+#     form = create_project_form()
+#     try:
+#         newproject = Project(
+#             user_id = current_user.id,
+#             project_name = form.project_name
+#         )
 
-        db.session.add(newproject)
-        db.session.commit()
+#         db.session.add(newproject)
+#         db.session.commit()
         
-        resp = jsonify({
-                "response_code": 0,
-                "errcode": 0,
-                "message": 'Project Succesfully created',
-                "status": 'success'
-            })
-        return resp
+#         resp = jsonify({
+#                 "response_code": 0,
+#                 "errcode": 0,
+#                 "message": 'Project Succesfully created',
+#                 "status": 'success'
+#             })
+#         return resp
 
-    except InvalidRequestError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 1,
-            "errcode": -1,
-            "message": 'Something went wrong!',
-            "status": 'danger'
-        })
-        return resp
-    except IntegrityError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 2,
-            "errcode": 1,
-            "message": 'Project already exists!',
-            "status": 'warning'
-        })
-        return resp
-    except DataError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 3,
-            "errcode": 1,
-            "message": 'Invalid Entry',
-            "status": 'warning'
-        })
-        return resp
-    except InterfaceError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 4,
-            "errcode": -1,
-            "message": 'Error connecting to the database',
-            "status": 'danger'
-        })
-        return resp
-    except DatabaseError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 5,
-            "errcode": -1,
-            "message": 'Error connecting to the database',
-            "status": 'danger'
-        })
-        return resp
-    except BuildError:
-        db.session.rollback()
-        resp = jsonify({
-            "response_code": 6,
-            "errcode": -1,
-            "message": 'An error occured!',
-            "status": 'danger'
-        })
-        return resp
+#     except InvalidRequestError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 1,
+#             "errcode": -1,
+#             "message": 'Something went wrong!',
+#             "status": 'danger'
+#         })
+#         return resp
+#     except IntegrityError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 2,
+#             "errcode": 1,
+#             "message": 'Project already exists!',
+#             "status": 'warning'
+#         })
+#         return resp
+#     except DataError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 3,
+#             "errcode": 1,
+#             "message": 'Invalid Entry',
+#             "status": 'warning'
+#         })
+#         return resp
+#     except InterfaceError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 4,
+#             "errcode": -1,
+#             "message": 'Error connecting to the database',
+#             "status": 'danger'
+#         })
+#         return resp
+#     except DatabaseError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 5,
+#             "errcode": -1,
+#             "message": 'Error connecting to the database',
+#             "status": 'danger'
+#         })
+#         return resp
+#     except BuildError:
+#         db.session.rollback()
+#         resp = jsonify({
+#             "response_code": 6,
+#             "errcode": -1,
+#             "message": 'An error occured!',
+#             "status": 'danger'
+#         })
+#         return resp
+
 
 
 def run_routes():
+    app.run(debug=True)
+
+if __name__ == "__main__":
     app.run(debug=True)
