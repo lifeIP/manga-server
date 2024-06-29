@@ -49,7 +49,7 @@ class PreviewImage(db.Model):
     __tablename__ = "preview_image"
 
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), unique=True)
     preview_image_name = db.Column(db.String(50), unique=False, nullable=False, default="0.png")
     
 class UserPhoto(db.Model):

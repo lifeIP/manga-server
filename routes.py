@@ -49,29 +49,26 @@ app.register_blueprint(my_projects)
 @app.before_request
 def session_handler():
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=1)
+    app.permanent_session_lifetime = timedelta(minutes=15)
 
 # @app.route("/1", methods=("GET", "POST"), strict_slashes=False)
 # def index():
 #     return render_template("index.html", title="Home")
 
 
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
- 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
- 
-ma=Marshmallow(app)
- 
-class ImageSchema(ma.Schema):
-    class Meta:
-        fields = ('id','title')
-         
-image_schema = ImageSchema(many=True)
 
-@app.route("/", methods=("GET", "POST"), strict_slashes=False)
-def hello_world():
-    return "<h1>Hello, World!</h1>"
+ 
+# ma=Marshmallow(app)
+ 
+# class ImageSchema(ma.Schema):
+#     class Meta:
+#         fields = ('id','title')
+         
+# image_schema = ImageSchema(many=True)
+
+# @app.route("/", methods=("GET", "POST"), strict_slashes=False)
+# def hello_world():
+#     return "<h1>Hello, World!</h1>"
 
 # @app.route('/upload', methods=['POST'])
 # def upload_file():

@@ -89,6 +89,7 @@ def registration():
         db.session.add(newuser)
         db.session.commit()
         
+
         resp = jsonify({
                 "response_code": 0,
                 "errcode": 0,
