@@ -69,6 +69,8 @@ class ModifiedPhoto(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_photo_id = db.Column(db.Integer, db.ForeignKey('user_photo.id'))
+    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+
 
 
 class PhotoMask(db.Model):

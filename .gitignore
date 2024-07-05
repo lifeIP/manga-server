@@ -9,6 +9,7 @@ __pycache__/
 *.mako
 # C extensions
 *.so
+migration/
 
 # Distribution / packaging
 .Python
