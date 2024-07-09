@@ -35,13 +35,6 @@ def create_project():
     try:
         print(form.data)
         if current_user.is_authenticated:
-            if Project.query.filter_by(user_id=current_user.id, flag=1).first() != None:
-                return jsonify({
-                    "response_code": 0,
-                    "errcode": 0,
-                    "message": 'All ok',
-                    "status": 'success'
-                })
             
             newproject = Project(
                 user_id = current_user.id,
@@ -52,6 +45,26 @@ def create_project():
                 project_name=form.project_name.data,
                 project_description=form.project_description.data
             )
+            
+            another_project = Project.query.filter_by(user_id=current_user.id, flag=1).first()
+            if another_project != None:
+            
+                another_project_settings = ProjectSettings.query.filter_by(project_id=another_project.id).first()
+
+                another_project.user_id = newproject.user_id
+                another_project.flag = newproject.flag
+
+                another_project_settings.project_name = newproject_settings.project_name
+                another_project_settings.project_description = newproject_settings.project_description
+
+                db.session.commit()
+                return jsonify({
+                    "response_code": 0,
+                    "errcode": 0,
+                    "message": 'All ok',
+                    "status": 'success'
+                })
+            
 
             newproject.project_settings.append(newproject_settings)
             db.session.add(newproject)
