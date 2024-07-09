@@ -22,10 +22,12 @@ from werkzeug.routing import BuildError
 
 import os
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import MultiDict 
+from werkzeug.datastructures import MultiDict
 from PIL import Image
 
+
 my_projects = Blueprint('my_projects', __name__, template_folder='templates')
+
 
 @my_projects.route("/create_my_project/", methods=("GET", "POST"))
 def create_project():
@@ -72,6 +74,8 @@ def create_project():
 
     
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+
+
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -152,6 +156,7 @@ def set_preview_image(index:int):
 
 @my_projects.route("/get_my_project/<index>", methods=("GET", "POST"))
 def get_project(index:int):
+    print(request.cookies)
     if current_user.is_authenticated:
         project = Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
         preview_image = PreviewImage.query.filter_by(project_id=project.id).first_or_404()
@@ -165,6 +170,7 @@ def get_project(index:int):
             "preview_image": preview_image.preview_image_name
         })
     else:
+        print("Не в аккаунте")
         return jsonify({
             "response_code": 1,
             "errcode": 0,

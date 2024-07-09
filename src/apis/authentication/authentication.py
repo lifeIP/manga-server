@@ -28,6 +28,7 @@ def load_user(user_id):
 my_auth = Blueprint('my_auth', __name__, template_folder='templates')
 
 
+
 @my_auth.route("/login/", methods=("GET", "POST"))
 def login():
     form = login_form()
@@ -88,7 +89,6 @@ def registration():
         newuser.site_settings.append(site_settings)
         db.session.add(newuser)
         db.session.commit()
-        
 
         resp = jsonify({
                 "response_code": 0,
@@ -153,15 +153,22 @@ def registration():
         })
         return resp
 
-@my_auth.route("/logout/")
-@login_required
+@my_auth.route("/logout/", methods=("GET", "POST"))
 def logout():
-    print("/logout")
-    logout_user()
-    resp = jsonify({
-            "response_code": 0,
-            "errcode": 0,
-            "message": 'Logout success',
-            "status": 'success'
-        })
-    return resp
+    try:
+        logout_user()
+        resp = jsonify({
+                "response_code": 0,
+                "errcode": 0,
+                "message": 'Logout success',
+                "status": 'success'
+            })
+        return resp
+    except:
+        resp = jsonify({
+                "response_code": -1,
+                "errcode": 1,
+                "message": 'Error',
+                "status": 'error'
+            })
+        return resp

@@ -49,7 +49,9 @@ app.register_blueprint(my_projects)
 @app.before_request
 def session_handler():
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=15)
+    app.permanent_session_lifetime = timedelta(hours=1)
+
+
 
 # @app.route("/1", methods=("GET", "POST"), strict_slashes=False)
 # def index():

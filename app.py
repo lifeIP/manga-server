@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
+from flask import session
+from flask.sessions import SecureCookieSessionInterface
 
 from flask_login import (
     UserMixin,
@@ -35,6 +37,9 @@ def create_app():
     UPLOAD_FOLDER = 'static/upload'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+    app.config["SESSION_PERMANENT"] = False
+    app.config["SESSION_USE_SIGNER"] = True
 
     login_manager.init_app(app)
     db.init_app(app)
