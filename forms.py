@@ -18,6 +18,7 @@ from src.database.models import User, UserSettings, SiteSettings, Project, Proje
 
 class create_project_form(FlaskForm):
     project_name = StringField(validators=[InputRequired(), Length(1, 50)])
+    project_description = StringField(validators=[Length(1, 1200)])
 
 
 class add_preview_image_form(FlaskForm):

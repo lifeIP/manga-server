@@ -35,15 +35,24 @@ def create_project():
     try:
         print(form.data)
         if current_user.is_authenticated:
+            if Project.query.filter_by(user_id=current_user.id, flag=1).first() != None:
+                return jsonify({
+                    "response_code": 0,
+                    "errcode": 0,
+                    "message": 'All ok',
+                    "status": 'success'
+                })
             
             newproject = Project(
-                user_id = current_user.id
+                user_id = current_user.id,
+                flag = True
             )
             
             newproject_settings = ProjectSettings(
-                project_name=form.project_name.data
+                project_name=form.project_name.data,
+                project_description=form.project_description.data
             )
-            
+
             newproject.project_settings.append(newproject_settings)
             db.session.add(newproject)
             db.session.commit()
@@ -72,7 +81,6 @@ def create_project():
         })
     
 
-    
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 
@@ -81,12 +89,13 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@my_projects.route("/set_preview_image/<index>", methods=("GET", "POST"))
-def set_preview_image(index:int):
+@my_projects.route("/set_preview_image/", methods=("GET", "POST"))
+def set_preview_image():
     if current_user.is_authenticated:
-        project = Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
+        project = Project.query.filter_by(user_id=current_user.id, flag=1).first_or_404()
+        project.flag = False
         print(request.files)
-        if 'files' not in request.files:
+        if 'file' not in request.files:
             resp = jsonify({
                 "message": 'No file part in the request',
                 "status": 'failed'
@@ -94,13 +103,13 @@ def set_preview_image(index:int):
             resp.status_code = 400
             return resp
         
-        files = request.files.getlist('files')
+        files = request.files.getlist('file')
         errors = {}
         success = False
         print(files)
 
         try:
-            os.makedirs("static/upload/" + str(current_user.id) + "/" + str(index))
+            os.makedirs("static/upload/" + str(current_user.id) + "/" + str(project.id))
         except:
             pass
 
@@ -110,13 +119,14 @@ def set_preview_image(index:int):
                     from time import time
                     filename = str(int(time())) + secure_filename(file.filename)
         
+                    newpreviewimage = PreviewImage.query.filter_by(project_id=project.id)
                     newpreviewimage = PreviewImage(
-                        project_id=index,
-                        preview_image_name="static/upload/" + str(current_user.id) + "/" + str(index) + "/" + filename
+                        project_id=project.id,
+                        preview_image_name="static/upload/" + str(current_user.id) + "/" + str(project.id) + "/" + filename
                     )
                     db.session.add(newpreviewimage)
                     db.session.commit()
-                    file.save(os.path.join("static/upload/" + str(current_user.id) + "/" + str(index), filename))
+                    file.save(os.path.join("static/upload/" + str(current_user.id) + "/" + str(project.id), filename))
                     success = True
                 
                 except:

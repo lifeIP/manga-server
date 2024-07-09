@@ -1,6 +1,6 @@
 from app import db
 from flask_login import UserMixin
-
+from datetime import datetime
 
 class User(UserMixin, db.Model):
     __tablename__ = "user"
@@ -31,6 +31,8 @@ class Project(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    time_of_creation = db.Column(db.DateTime, nullable=False, default=datetime.now) 
+    flag = db.Column(db.Boolean, nullable=False, default=False)
 
     project_settings = db.relationship("ProjectSettings", backref="project")
     preview_image = db.relationship("PreviewImage", backref="project")
@@ -50,7 +52,7 @@ class PreviewImage(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), unique=True)
-    preview_image_name = db.Column(db.String(50), unique=False, nullable=False, default="0.png")
+    preview_image_name = db.Column(db.String(50), unique=False, nullable=False, default="static/service/no_image.jpg")
     
 class UserPhoto(db.Model):
     __tablename__ = "user_photo"
@@ -58,7 +60,7 @@ class UserPhoto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     number_in_queue = db.Column(db.Integer, unique=False, nullable=False)
-    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="static/service/no_image.jpg")
 
     modified_photo = db.relationship("ModifiedPhoto", backref="user_photo")
     photo_mask = db.relationship("PhotoMask", backref="user_photo")
@@ -69,7 +71,7 @@ class ModifiedPhoto(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_photo_id = db.Column(db.Integer, db.ForeignKey('user_photo.id'))
-    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="0.png")
+    photo_name = db.Column(db.String(30), unique=False, nullable=False, default="static/service/no_image.jpg")
 
 
 
