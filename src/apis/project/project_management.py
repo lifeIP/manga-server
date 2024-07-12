@@ -33,7 +33,6 @@ my_projects = Blueprint('my_projects', __name__, template_folder='templates')
 def create_project():
     form = create_project_form()
     try:
-        print(form.data)
         if current_user.is_authenticated:
             
             newproject = Project(
@@ -70,7 +69,7 @@ def create_project():
             db.session.add(newproject)
             db.session.commit()
 
-            print("/projects/ ", current_user.id)
+            # print("/projects/ ", current_user.id)
             return jsonify({
                 "response_code": 0,
                 "errcode": 0,
@@ -85,7 +84,7 @@ def create_project():
                 "status": 'success'
             })
     except:
-        print("error")
+        # print("error")
         return jsonify({
             "response_code": -1,
             "errcode": -1,
@@ -107,7 +106,7 @@ def set_preview_image():
     if current_user.is_authenticated:
         project = Project.query.filter_by(user_id=current_user.id, flag=1).first_or_404()
         project.flag = False
-        print(request.files)
+        # print(request.files)
         if 'file' not in request.files:
             resp = jsonify({
                 "message": 'No file part in the request',
@@ -119,7 +118,7 @@ def set_preview_image():
         files = request.files.getlist('file')
         errors = {}
         success = False
-        print(files)
+        # print(files)
 
         try:
             os.makedirs("static/upload/" + str(current_user.id) + "/" + str(project.id))
@@ -176,10 +175,31 @@ def set_preview_image():
             "status": 'success'
         })
     
+@my_projects.route("/get_my_projects", methods=("GET", "POST"))
+def get_all_projects():
+    if current_user.is_authenticated:
+        projects = Project.query.filter_by(user_id=current_user.id).all()
+
+        projects_number = list()
+        for project in projects:
+            projects_number.append(project.id)
+
+        return jsonify(
+            {"list": projects_number}
+        )
+    else:
+        # print("Не в аккаунте")
+        return jsonify({
+            "response_code": 1,
+            "errcode": 0,
+            "message": 'You are not logged in to your account',
+            "status": 'success'
+        })
+
 
 @my_projects.route("/get_my_project/<index>", methods=("GET", "POST"))
 def get_project(index:int):
-    print(request.cookies)
+    # print(request.cookies)
     if current_user.is_authenticated:
         project = Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
         preview_image = PreviewImage.query.filter_by(project_id=project.id).first_or_404()
@@ -193,7 +213,7 @@ def get_project(index:int):
             "preview_image": preview_image.preview_image_name
         })
     else:
-        print("Не в аккаунте")
+        # print("Не в аккаунте")
         return jsonify({
             "response_code": 1,
             "errcode": 0,
@@ -218,7 +238,7 @@ def add_user_photo(index:int):
         files = request.files.getlist('files')
         errors = {}
         success = False
-        print(files)
+        # print(files)
 
         try:
             os.makedirs("static/upload/" + str(current_user.id) + "/" + str(index) + "/original")
@@ -317,7 +337,7 @@ def add_photo_mask(index:int):
         files = request.files.getlist('files')
         errors = {}
         success = False
-        print(files)
+        # print(files)
 
         try:
             os.makedirs("static/upload/" + str(current_user.id) + "/" + str(index) + "/mask")
