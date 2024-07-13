@@ -297,6 +297,44 @@ def add_user_photo(index:int):
             "status": 'success'
         })
     
+@my_projects.route("/get_list_id_user_photos/<index>", methods=("GET", "POST"))
+def get_list_id_user_photos(index:int):
+    if current_user.is_authenticated:
+        Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
+        user_photos = UserPhoto.query.filter_by(project_id=index)
+
+        uphoto = []
+        for photo in user_photos:
+            uphoto.append({"user_photo_id": photo.id
+                           })
+        return jsonify(uphoto)
+    else:
+        return jsonify({
+            "response_code": 1,
+            "errcode": 0,
+            "message": 'You are not logged in to your account',
+            "status": 'success'
+        })
+    
+@my_projects.route("/get_user_photo/<index>/<id>", methods=("GET", "POST"))
+def get_user_photo(index:int, id:int):
+    if current_user.is_authenticated:
+        Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
+        photo = UserPhoto.query.filter_by(project_id=index, id=id).first_or_404()
+
+        return jsonify({"photo_name": photo.photo_name,
+                           "number_in_queue": photo.number_in_queue,
+                           "project_id": photo.project_id,
+                           "user_photo_id": photo.id
+                           })
+    else:
+        return jsonify({
+            "response_code": 1,
+            "errcode": 0,
+            "message": 'You are not logged in to your account',
+            "status": 'success'
+        })
+    
 
 @my_projects.route("/get_user_photos/<index>", methods=("GET", "POST"))
 def get_user_photos(index:int):
@@ -308,7 +346,8 @@ def get_user_photos(index:int):
         for photo in user_photos:
             uphoto.append({"photo_name": photo.photo_name,
                            "number_in_queue": photo.number_in_queue,
-                           "project_id": photo.project_id
+                           "project_id": photo.project_id,
+                           "user_photo_id": photo.id
                            })
         return jsonify(uphoto)
     else:
@@ -319,12 +358,12 @@ def get_user_photos(index:int):
             "status": 'success'
         })
     
-
-@my_projects.route("/add_photo_mask/<index>", methods=("GET", "POST"))
-def add_photo_mask(index:int):
+ 
+@my_projects.route("/add_photo_mask/<index>/<id>", methods=("GET", "POST"))
+def add_photo_mask(index:int, id:int):
     if current_user.is_authenticated:
-        Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
-        user_photo = UserPhoto.query.filter_by(project_id=index).first_or_404()
+        project = Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
+        user_photo = UserPhoto.query.filter_by(project_id=index, id=id).first_or_404()
 
         if 'files' not in request.files:
             resp = jsonify({
@@ -394,11 +433,11 @@ def add_photo_mask(index:int):
             "status": 'success'
         })
     
-@my_projects.route("/get_mask/<index>", methods=("GET", "POST"))
-def get_mask(index:int):
+@my_projects.route("/get_mask/<index>/<id>", methods=("GET", "POST"))
+def get_mask(index:int, id:int):
     if current_user.is_authenticated:
         Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
-        user_photos = UserPhoto.query.filter_by(project_id=index)
+        user_photos = UserPhoto.query.filter_by(project_id=index, id=id)
 
         uphoto = []
         for photo in user_photos:
@@ -416,11 +455,88 @@ def get_mask(index:int):
             "status": 'success'
         })
     
-@my_projects.route("/get_modified_photo/<index>", methods=("GET", "POST"))
-def get_modified_photo(index:int):
+
+
+
+@my_projects.route("/add_modified_photo/<index>/<id>", methods=("GET", "POST"))
+def add_modified_photo(index:int, id:int):
+    if current_user.is_authenticated:
+        project = Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
+        user_photo = UserPhoto.query.filter_by(project_id=index, id=id).first_or_404()
+
+        if 'files' not in request.files:
+            resp = jsonify({
+                "message": 'No file part in the request',
+                "status": 'failed'
+            })
+            resp.status_code = 400
+            return resp
+        
+        files = request.files.getlist('files')
+        errors = {}
+        success = False
+        # print(files)
+
+        try:
+            os.makedirs("static/upload/" + str(current_user.id) + "/" + str(index) + "/modified")
+        except:
+            pass
+        
+        for file in files:      
+            if file and allowed_file(file.filename):
+                try:
+                    from time import time
+                    filename = str(int(time())) + secure_filename(file.filename)
+        
+                    new_mask = ModifiedPhoto(
+                        user_photo_id=user_photo.id,
+                        photo_name="static/upload/" + str(current_user.id) + "/" + str(index) + "/modified/" + filename
+                    )
+                    db.session.add(new_mask)
+                    db.session.commit()
+                    file.save(os.path.join("static/upload/" + str(current_user.id) + "/" + str(index) + "/modified", filename))
+                    success = True
+                
+                except:
+                    success = False
+            else:
+                resp = jsonify({
+                    "message": 'File type is not allowed',
+                    "status": 'failed'
+                })
+                return resp
+            
+        if success and errors:
+            errors['status'] = 'failed'
+            resp = jsonify(errors)
+            resp.status_code = 500
+            return resp
+        
+        if success:
+            resp = jsonify({
+                "message": 'Files successfully uploaded',
+                "status": 'successs'
+            })
+            resp.status_code = 201
+            return resp
+        else:
+            resp = jsonify(errors)
+            resp.status_code = 500
+            return resp
+
+    else:
+        return jsonify({
+            "response_code": 1,
+            "errcode": 0,
+            "message": 'You are not logged in to your account',
+            "status": 'success'
+        })
+
+@my_projects.route("/get_modified_photo/<index>/<id>", methods=("GET", "POST"))
+def get_modified_photo(index:int, id:int):
     if current_user.is_authenticated:
         Project.query.filter_by(user_id=current_user.id, id=index).first_or_404()
-        user_photos = UserPhoto.query.filter_by(project_id=index)
+        user_photos = UserPhoto.query.filter_by(project_id=index, id=id)
 
         uphoto = []
         for photo in user_photos:
